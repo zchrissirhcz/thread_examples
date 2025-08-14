@@ -1,5 +1,6 @@
 #include <thread>
 #include <mutex>
+#include <stdio.h>
 
 bool running = false;
 std::mutex mutex;
