@@ -1,54 +1,82 @@
-#include <iostream>
 #include <thread>
+#include <iostream>
 #include <mutex>
 #include <condition_variable>
 
-std::mutex mtx;                  // mutex
-std::condition_variable cv;      // condition variable
-bool data_ready = false;         // shared condition
-int shared_data;                 // shared data
+std::mutex mtx;
+std::condition_variable cv;
+int data = 0;
+bool data_ready = false;
+bool running = false;
 
-// producer thread: generate data
-void producer() {
-    std::unique_lock<std::mutex> lock(mtx);
-    
-    // generate data
-    for (int i = 0; i < 5; i++)
+void f()
+{
+    printf("thread starting\n");
+    while (true)
     {
-        shared_data = i;
-        std::cout << "producer: generated data " << shared_data << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // simulate work
-        
-        // update state
-        data_ready = true;
-        
-        // notify consumer threads that are waiting
-        cv.notify_one();
+        std::unique_lock<std::mutex> lock(mtx);
+        cv.wait(lock, [] { return data_ready || !running; });
+        // equivalent to:
+        // while (!(data_ready || !running))
+        // {
+        //     cv.wait(lock);
+        // }
+
+        if (!running && !data_ready)
+            break;
+
+        if (data_ready)
+        {
+            data_ready = false;
+            if (data % 2 == 0)
+            {
+                printf("in thread got even data: %d\n", data);
+            }
+            else
+            {
+                printf("in thread got odd data: %d\n", data);
+            }
+        }
     }
+    printf("thread exiting\n");
 }
 
-// consumer thread: process data
-void consumer() {
-    std::unique_lock<std::mutex> lock(mtx);
-    
-    // 等待数据准备好，如果条件不满足则释放锁并等待
-    // cv.wait(lock, []{ return data_ready; });
-    while (!data_ready) {
-        cv.wait(lock);
-    }
-    
-    // process data
-    std::cout << "consumer: receives data " << shared_data << std::endl;
-}
 
-int main() {
-    // create producer and consumer threads
-    std::thread prod(producer);
-    std::thread cons(consumer);
-    
-    // wait for threads finished
-    prod.join();
-    cons.join();
-    
+int main()
+{
+    printf("hello from main\n");
+    running = true;
+    std::thread thread(f);
+
+    int n;
+    while (true)
+    {
+        if (std::cin >> n)
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            data = n;
+            data_ready = true;
+            cv.notify_one();
+        }
+        else
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+
+        if (n > 100)
+        {
+            break;
+        }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        running = false;
+    }
+
+    thread.join();
+    printf("bye from main\n");
+
     return 0;
 }
