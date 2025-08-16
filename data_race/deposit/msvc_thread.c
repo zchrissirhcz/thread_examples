@@ -41,7 +41,7 @@ void deposit_safe(BankAccount* account, double amount) {
     
     // Critical section: read-modify-write must be atomic
     double prev_balance = account->balance;
-    Sleep(1); // Simulate work
+    Sleep(10); // Simulate work
     account->balance = prev_balance + amount;
     
     // Release the lock
