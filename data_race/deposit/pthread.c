@@ -13,6 +13,12 @@ typedef struct BankAccount
 void bank_account_init(BankAccount* account, double initial_balance)
 {
     account->balance = initial_balance;
+    account->mtx = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+}
+
+void bank_account_uninit(BankAccount* account)
+{
+    pthread_mutex_destroy(&account->mtx);
 }
 
 void bank_account_deposit_unsafe(BankAccount* account, double amount)
@@ -93,6 +99,11 @@ void test_race_condition(bool use_mutex)
     printf("Expected balance: %f\n", expected_balance);
     printf("Actual balance: %f\n", actual_balance);
     printf("Difference: %f\n", expected_balance - actual_balance);
+
+    // cleanup resources
+    free(threads);
+    free(params);
+    bank_account_uninit(&account);
 }
 
 int main()

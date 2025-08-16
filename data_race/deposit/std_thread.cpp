@@ -1,6 +1,7 @@
 #include <mutex>
 #include <thread>
 #include <chrono>
+#include <vector>
 #include <iostream>
 
 class LockGuard {
