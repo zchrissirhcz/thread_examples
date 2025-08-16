@@ -42,3 +42,45 @@ std::mutex
 std::condition_variable
 std::lock_guard
 std::unique_lock
+
+### std::lock_guard
+
+```cpp
+std::mutex mtx;
+{
+    std::lock_guard<std::mutex> lock(mtx)
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // simulate some work
+}
+```
+equivalent to
+```cpp
+std::mutex mtx;
+{
+    mtx.lock();
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // simulate some work
+    mtx.unlock();
+}
+```
+
+### std::condition_variable::wait(lock, pred)
+
+```cpp
+std::condition_variable cv;
+std::mutex mtx;
+{
+    std::unique_lock<std::mutex> lock(mtx);
+    auto pred = [&]() { return /* condition */; };
+    cv.wait(lock, pred);
+}
+```
+equivalent to
+```cpp
+std::condition_variable cv;
+std::mutex mtx;
+{
+    std::unique_lock<std::mutex> lock(mtx);
+    auto pred = [&]() { return /* condition */; };
+    while (!pred)
+        cv.wait(lock);
+}
+```
