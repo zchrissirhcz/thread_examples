@@ -28,6 +28,17 @@ pthread_mutex_lock()
 pthread_mutex_unlock()
 pthread_mutex_destroy()
 
+pthread_cond_init()
+pthread_cond_destroy()
+pthread_cond_wait()
+pthread_cond_timedwait()
+pthread_cond_signal()
+pthraed_cond_broadcast()
+
 ## std::thread
 
-TBD
+std::thread
+std::mutex
+std::condition_variable
+std::lock_guard
+std::unique_lock
