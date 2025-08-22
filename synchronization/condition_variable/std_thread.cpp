@@ -73,6 +73,7 @@ int main()
     {
         std::lock_guard<std::mutex> lock(mtx);
         running = false;
+        cv.notify_one();
     }
 
     thread.join();
